@@ -3,20 +3,23 @@
 <div class="class col-md-4 offset-md-4">
 
     <div class="card body">
-        <form action="/update/{{contact.0}}" method="POST">
+        <form action="/users/add_user" method="POST">
             <div class="form-group">
-                <input type="text" name="fullname" placeholder="fullname" value="{{ contact.1 }}" class="form-control">
+                <input type="text" name="fullname" placeholder="Nombre completo"  class="form-control">
             </div>
             <div class="form-group">
-                <input type="email" name="email" placeholder="email" value="{{ contact.2 }}" class="form-control">
+                <input type="email" name="email" placeholder="email"  class="form-control">
             </div>
             <div class="form-group">
-                <input type="text" name="phone" placeholder="phone" value="{{ contact.3}}" class="form-control">
+                <input type="text" name="phone" placeholder="Teléfono"  class="form-control">
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-success btn-block form-control">Guardar</button>
             </div>
         </form>
+        <a href="javascript:history.back()">
+            <button class="btn btn-warning btn-block form-control">Volver</button>
+        </a>
     </div>
 </div>
 

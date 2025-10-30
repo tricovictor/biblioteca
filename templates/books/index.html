@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+<div class="class row">
+    <div class="class col-md-5">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  {{ messages }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                  </button>
+                </div>
+            {%endfor%}
+          {% endif %}
+        {% endwith %}
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <form action="/book/search" method="get" class="d-flex form-control">
+                <input class="form-control" type="text" name="titulo" placeholder="Buscar por título..." value="{{ request.args.get('titulo','') }}">
+                <button class="btn" type="submit">🔍 Buscar</button>
+            </form>
+        </div>
+        <div class="col-md-4" style="text-align: right;">
+            <a href="/book/add-book" class="btn btn-success">Nuevo</a>
+        </div>
+    </div>
+
+    <div class="class col-md-12">
+        <table class="table table-striped table-bordered bg-white table-sm">
+            <thead>
+            <tr>
+                <td>Titulo</td>
+                <td>Autor</td>
+                <td>Editorial</td>
+                <td>Genero</td>
+                <td>Idioma</td>
+                <td>Código ISN</td>
+                <td>Categoría</td>
+                <td>Ubicación</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for book in books %}
+            <tr>
+                <td>{{ book.1 }}</td>
+                <td>{{ book.2 }}</td>
+                <td>{{ book.3 }}</td>
+                <td>{{ book.4 }}</td>
+                <td>{{ book.5 }}</td>
+                <td>{{ book.6 }}</td>
+                <td>{{ book.7 }}</td>
+                <td>{{ book.8 }}</td>
+
+                <td>
+                    <a href="/book/edit/{{book.0}}" class="btn btn-success">Editar</a>
+                    <a href="/delete/{{book.0}}" class="btn btn-danger btn-delete">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}
