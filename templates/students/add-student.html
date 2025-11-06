@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="class col-md-4 offset-md-4">
+
+    <div class="card body">
+
+        <form action="/student/add_student" method="POST">
+            <div class="form-group">
+                <input type="text" name="name" placeholder="Nombre" class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="text" name="lastname" placeholder="Apellido" class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="text" name="document" placeholder="Documento" class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="text" name="email" placeholder="Correo electrónico" class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="text" name="phone" placeholder="Teléfono" class="form-control">
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block form-control">Guardar</button>
+            </div>
+        </form>
+        <a href="javascript:history.back()">
+            <button class="btn btn-warning btn-block form-control">Volver</button>
+        </a>
+    </div>
+</div>
+
+
+{% endblock %}

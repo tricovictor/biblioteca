@@ -70,20 +70,34 @@ def delete_contact(id):
     flash('Contacto eliminado')
     return redirect(url_for('Index'))
 
+@app.route("/users/search", methods=["GET"])
+def search_user():
+    fullname = request.args.get("fullname", "").strip().lower()
+    cur = mysql.connection.cursor()
+    consulta = """SELECT * FROM contacts WHERE LOWER(fullname) LIKE %s"""
+    patron = f"%{fullname}%"
+    cur.execute(consulta, (patron,))
+    data = cur.fetchall()
+    return render_template("users/index.html", users= data)
+
+
 #Aca empiezan los books
 
 
 @app.route('/books')
 def Indexbooks():
     cur = mysql.connection.cursor()
-    cur.execute('SELECT * FROM libros')
+    cur.execute("""
+        SELECT libros.* , categories.name AS categoria
+        FROM libros
+        JOIN categories ON libros.categoria = categories.id
+    """)
     data = cur.fetchall()
     return render_template('books/index.html', books = data)
 
 @app.route('/book/add-book')
 def add_book_view():
     return render_template('books/add-book.html')
-
 
 @app.route('/book/add_book', methods=['POST'])
 def add_book():
@@ -141,7 +155,6 @@ def update_book(id):
 def search_book():
     nombre = request.args.get("titulo", "").strip().lower()
     cur = mysql.connection.cursor()
-    #Aca no anda la busqueda
     consulta = """SELECT * FROM libros WHERE LOWER(nombre) LIKE %s"""
     patron = f"%{nombre}%"
     cur.execute(consulta, (patron,))
@@ -149,6 +162,7 @@ def search_book():
     return render_template("books/index.html", books= data)
 
 #Aqui empiezan los estudiantes
+
 @app.route('/students')
 def Indexstudents():
     cur = mysql.connection.cursor()
@@ -156,12 +170,86 @@ def Indexstudents():
     data = cur.fetchall()
     return render_template('students/index.html', students = data)
 
+@app.route("/student/search", methods=["GET"])
+def search_student():
+    nombre = request.args.get("lastname", "").strip().lower()
+    cur = mysql.connection.cursor()
+    consulta = """SELECT * FROM students WHERE LOWER(name) LIKE %s OR LOWER(lastname) LIKE %s"""
+    patron = f"%{nombre}%"
+    cur.execute(consulta, (patron,patron,))
+    data = cur.fetchall()
+    return render_template("students/index.html", students= data)
 
 
+@app.route('/student/add-student')
+def add_student_view():
+    return render_template('students/add-student.html')
 
+@app.route('/student/add_student', methods=['POST'])
+def add_student():
+    if request.method == 'POST':
+        name = request.form['name']
+        lastname = request.form['lastname']
+        document = request.form['document']
+        email = request.form['email']
+        phone = request.form['phone']
+        cur = mysql.connection.cursor()
+        cur.execute('INSERT INTO students (name, lastname, document, email, phone) VALUES (%s, %s ,%s, %s, %s )', (name, lastname, document, email, phone))
+        mysql.connection.commit()
+        flash('Estudiante agregado correctamente')
+        return redirect(url_for('Indexstudents'))
 
+@app.route('/student/edit/<id>')
+def edit_student(id):
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM students WHERE id = %s',(id))
+    data = cur.fetchall()
+    return render_template('students/edit-student.html', student = data[0])
 
+@app.route('/student/update/<id>', methods = ['POST'])
+def update_student(id):
+    if request.method == 'POST':
+        name = request.form['name']
+        lastname = request.form['lastname']
+        document = request.form['document']
+        email = request.form['email']
+        phone = request.form['phone']
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            UPDATE students
+            SET name = %s,
+                lastname = %s,
+                document = %s, 
+                email = %s,
+                phone = %s 
+            WHERE id = %s
+        """,(name,lastname,document,email,phone, id))
+        mysql.connection.commit()
+        flash('Estudiante actualizado')
+        return redirect(url_for('Indexstudents'))
 
+#Aqui comienzan las categorias
+
+@app.route('/categories')
+def Indexcategories():
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM categories')
+    data = cur.fetchall()
+    return render_template('categories/index.html', categories = data)
+
+@app.route('/categories/add-category')
+def add_category_view():
+    return render_template('categories/add-category.html')
+
+@app.route('/categories/add_category', methods=['POST'])
+def add_category():
+    if request.method == 'POST':
+        nombre = request.form['name']
+        cur = mysql.connection.cursor()
+        cur.execute('INSERT INTO categories (name) VALUES (%s)', (nombre,))
+        mysql.connection.commit()
+        flash('Categoria agregada correctamente')
+        return redirect(url_for('Indexcategories'))
 
 
 if __name__ == '__main__':
