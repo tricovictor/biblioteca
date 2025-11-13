@@ -1,14 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_mysqldb import MySQL #pip install flask-mysqldb
+#from flask_mysqldb import MySQL #pip install flask-mysqldb
+import pymysql
 
 app = Flask(__name__)
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'admin'
-app.config['MYSQL_PASSWORD'] = '5@L4QVrtUUMIHzP'
-app.config['MYSQL_DB'] = 'biblioteca'
-mysql = MySQL(app)
 
+DB_HOST = 'localhost'
+DB_USER = 'admin'
+DB_PASS = '5@L4QVrtUUMIHzP'
+#2DOems
+DB_NAME = 'biblioteca'
 app.secret_key = 'mysecretkey'
+
+def get_db_connection():
+    return pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
 @app.route('/')
 def Index():
@@ -16,9 +26,11 @@ def Index():
 
 @app.route('/users')
 def Indexusers():
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('SELECT * FROM contacts')
     data = cur.fetchall()
+    conn.close()
     return render_template('users/index.html', users = data)
 
 @app.route('/users/add-user')
@@ -31,15 +43,17 @@ def add_contact():
         fullname = request.form['fullname']
         email = request.form['email']
         phone = request.form['phone']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute('INSERT INTO contacts (fullname, email, phone) VALUES (%s, %s ,%s)', (fullname, email, phone))
-        mysql.connection.commit()
+        conn.commit()
         flash('Contacto agregado correctamente')
         return redirect(url_for('Index'))
 
 @app.route('/users/edit/<id>')
 def edit_contact(id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('SELECT * FROM contacts WHERE id = %s',(id))
     data = cur.fetchall()
     return render_template('users/edit-user.html', contact = data[0])
@@ -50,7 +64,8 @@ def update_contact(id):
         fullname = request.form['fullname']
         email = request.form['email']
         phone = request.form['phone']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute("""
             UPDATE contacts
             SET fullname = %s,
@@ -58,22 +73,24 @@ def update_contact(id):
                 phone = %s 
             WHERE id = %s
         """,(fullname, email, phone, id))
-        mysql.connection.commit()
+        conn.commit()
         flash('Contacto actualizado')
-        return redirect(url_for('Index'))
+        return redirect(url_for('Indexusers'))
 
 @app.route('/users/delete/<string:id>')
 def delete_contact(id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('DELETE FROM contacts WHERE id = {0}' .format(id))
-    mysql.connection.commit()
+    conn.commit()
     flash('Contacto eliminado')
     return redirect(url_for('Index'))
 
 @app.route("/users/search", methods=["GET"])
 def search_user():
     fullname = request.args.get("fullname", "").strip().lower()
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     consulta = """SELECT * FROM contacts WHERE LOWER(fullname) LIKE %s"""
     patron = f"%{fullname}%"
     cur.execute(consulta, (patron,))
@@ -86,18 +103,23 @@ def search_user():
 
 @app.route('/books')
 def Indexbooks():
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute("""
         SELECT libros.* , categories.name AS categoria
         FROM libros
-        JOIN categories ON libros.categoria = categories.id
+        JOIN categories ON libros.categoria_id = categories.id
     """)
     data = cur.fetchall()
     return render_template('books/index.html', books = data)
 
 @app.route('/book/add-book')
 def add_book_view():
-    return render_template('books/add-book.html')
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM categories')
+    categories = cur.fetchall()
+    return render_template('books/add-book.html', categories = categories)
 
 @app.route('/book/add_book', methods=['POST'])
 def add_book():
@@ -110,15 +132,17 @@ def add_book():
         codigoISN = request.form['codigoISN']
         categoria = request.form['categoria']
         ubicacion = request.form['ubicacion']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute('INSERT INTO libros (nombre, autor, editorial, genero, idioma, codigoISN, categoria, ubicacion) VALUES (%s, %s ,%s, %s, %s ,%s, %s, %s)', (nombre, autor, editorial, genero, idioma, codigoISN, categoria, ubicacion))
-        mysql.connection.commit()
+        conn.commit()
         flash('Libro agregado correctamente')
         return redirect(url_for('Indexbooks'))
 
 @app.route('/book/edit/<id>')
 def edit_book(id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('SELECT * FROM libros WHERE id = %s',(id))
     data = cur.fetchall()
     return render_template('books/edit.html', book = data[0])
@@ -134,27 +158,29 @@ def update_book(id):
         codigoISN = request.form['codigoISN']
         categoria = request.form['categoria']
         ubicacion = request.form['ubicacion']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute("""
             UPDATE libros
             SET nombre = %s,
                 autor = %s,
-                editorial = %s 
-                genero = %s 
-                idioma = %s 
-                codigoISN = %s 
-                categoria = %s 
+                editorial = %s, 
+                genero = %s, 
+                idioma = %s, 
+                codigoISN = %s, 
+                categoria = %s, 
                 ubicacion = %s 
             WHERE id = %s
         """,(nombre,autor,editorial,genero,idioma,codigoISN,categoria,ubicacion, id))
-        mysql.connection.commit()
+        conn.commit()
         flash('Libro actualizado')
         return redirect(url_for('Index'))
 
 @app.route("/book/search", methods=["GET"])
 def search_book():
     nombre = request.args.get("titulo", "").strip().lower()
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     consulta = """SELECT * FROM libros WHERE LOWER(nombre) LIKE %s"""
     patron = f"%{nombre}%"
     cur.execute(consulta, (patron,))
@@ -165,7 +191,8 @@ def search_book():
 
 @app.route('/students')
 def Indexstudents():
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('SELECT * FROM students')
     data = cur.fetchall()
     return render_template('students/index.html', students = data)
@@ -173,7 +200,8 @@ def Indexstudents():
 @app.route("/student/search", methods=["GET"])
 def search_student():
     nombre = request.args.get("lastname", "").strip().lower()
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     consulta = """SELECT * FROM students WHERE LOWER(name) LIKE %s OR LOWER(lastname) LIKE %s"""
     patron = f"%{nombre}%"
     cur.execute(consulta, (patron,patron,))
@@ -193,15 +221,17 @@ def add_student():
         document = request.form['document']
         email = request.form['email']
         phone = request.form['phone']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute('INSERT INTO students (name, lastname, document, email, phone) VALUES (%s, %s ,%s, %s, %s )', (name, lastname, document, email, phone))
-        mysql.connection.commit()
+        conn.commit()
         flash('Estudiante agregado correctamente')
         return redirect(url_for('Indexstudents'))
 
 @app.route('/student/edit/<id>')
 def edit_student(id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('SELECT * FROM students WHERE id = %s',(id))
     data = cur.fetchall()
     return render_template('students/edit-student.html', student = data[0])
@@ -214,7 +244,8 @@ def update_student(id):
         document = request.form['document']
         email = request.form['email']
         phone = request.form['phone']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute("""
             UPDATE students
             SET name = %s,
@@ -224,7 +255,7 @@ def update_student(id):
                 phone = %s 
             WHERE id = %s
         """,(name,lastname,document,email,phone, id))
-        mysql.connection.commit()
+        conn.commit()
         flash('Estudiante actualizado')
         return redirect(url_for('Indexstudents'))
 
@@ -232,7 +263,8 @@ def update_student(id):
 
 @app.route('/categories')
 def Indexcategories():
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute('SELECT * FROM categories')
     data = cur.fetchall()
     return render_template('categories/index.html', categories = data)
@@ -245,10 +277,34 @@ def add_category_view():
 def add_category():
     if request.method == 'POST':
         nombre = request.form['name']
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute('INSERT INTO categories (name) VALUES (%s)', (nombre,))
-        mysql.connection.commit()
+        conn.commit()
         flash('Categoria agregada correctamente')
+        return redirect(url_for('Indexcategories'))
+
+@app.route('/categories/edit/<id>')
+def edit_category(id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM categories WHERE id = %s',(id))
+    data = cur.fetchall()
+    return render_template('categories/edit.html', category = data[0])
+
+@app.route('/categories/update/<id>', methods = ['POST'])
+def update_category(id):
+    if request.method == 'POST':
+        name = request.form['name']
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE categories
+            SET name = %s
+            WHERE id = %s
+        """,(name, id))
+        conn.commit()
+        flash('Categoria actualizada')
         return redirect(url_for('Indexcategories'))
 
 

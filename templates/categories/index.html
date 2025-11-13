@@ -35,10 +35,10 @@
             <tbody>
             {% for category in categories %}
             <tr>
-                <td>{{ category.1 }}</td>
+                <td>{{ category.name }}</td>
                 <td style="text-align: right;">
-                    <a href="/students/edit/{{category.0}}" class="btn btn-success">Editar</a>
-                    <a href="/delete/{{category.0}}" class="btn btn-danger btn-delete">Eliminar</a>
+                    <a href="/categories/edit/{{category.id}}" class="btn btn-success">Editar</a>
+                    <a href="/categories/{{category.id}}" class="btn btn-danger btn-delete">Eliminar</a>
                 </td>
             </tr>
             {% endfor %}

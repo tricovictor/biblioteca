@@ -42,13 +42,13 @@
             <tbody>
             {% for student in students %}
             <tr>
-                <td>{{ student.1 }}</td>
-                <td>{{ student.2 }}</td>
-                <td>{{ student.3 }}</td>
-                <td>{{ student.4 }}</td>
-                <td>{{ student.5 }}</td>
+                <td>{{ student.name }}</td>
+                <td>{{ student.lastname }}</td>
+                <td>{{ student.document }}</td>
+                <td>{{ student.email }}</td>
+                <td>{{ student.phone }}</td>
                 <td style="text-align: right;">
-                    <a href="/student/edit/{{student.0}}" class="btn btn-success">Editar</a>
+                    <a href="/student/edit/{{student.id}}" class="btn btn-success">Editar</a>
                 </td>
             </tr>
             {% endfor %}

@@ -44,14 +44,14 @@
             <tbody>
             {% for book in books %}
             <tr>
-                <td>{{ book.1 }}</td>
-                <td>{{ book.2 }}</td>
-                <td>{{ book.3 }}</td>
-                <td>{{ book.4 }}</td>
-                <td>{{ book.5 }}</td>
-                <td>{{ book.6 }}</td>
-                <td>{{ book.9 }}</td>
-                <td>{{ book.8 }}</td>
+                <td>{{ book.nombre }}</td>
+                <td>{{ book.autor }}</td>
+                <td>{{ book.editorial }}</td>
+                <td>{{ book.genero }}</td>
+                <td>{{ book.idioma }}</td>
+                <td>{{ book.codigoISN }}</td>
+                <td>{{ book.categoria }}</td>
+                <td>{{ book.ubicacion }}</td>
 
                 <td style="text-align: right;">
                     <a href="/book/edit/{{book.0}}" class="btn btn-success">Editar</a>
