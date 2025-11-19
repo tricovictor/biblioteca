@@ -7,7 +7,8 @@ app = Flask(__name__)
 DB_HOST = 'localhost'
 DB_USER = 'admin'
 DB_PASS = '5@L4QVrtUUMIHzP'
-#2DOems
+#DB_USER = 'root'
+#DB_PASS = '2DOems'
 DB_NAME = 'biblioteca'
 app.secret_key = 'mysecretkey'
 
@@ -48,7 +49,7 @@ def add_contact():
         cur.execute('INSERT INTO contacts (fullname, email, phone) VALUES (%s, %s ,%s)', (fullname, email, phone))
         conn.commit()
         flash('Contacto agregado correctamente')
-        return redirect(url_for('Index'))
+        return redirect(url_for('Indexusers'))
 
 @app.route('/users/edit/<id>')
 def edit_contact(id):
@@ -306,6 +307,45 @@ def update_category(id):
         conn.commit()
         flash('Categoria actualizada')
         return redirect(url_for('Indexcategories'))
+
+#Aca empiezan los prestamos
+
+@app.route('/loans')
+def Indexloans():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT loans.* , libros.nombre AS namebook, students.name AS name, students.lastname
+        FROM loans
+        JOIN libros ON libros.id = loans.book_id
+        JOIN students ON students.id = loans.student_id
+    """)
+    data = cur.fetchall()
+    return render_template('loans/index.html', loans = data)
+
+@app.route('/loan/add-loan')
+def add_loan_view():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM students')
+    students = cur.fetchall()
+    cur.execute('SELECT * FROM libros')
+    books = cur.fetchall()
+    return render_template('loans/add-loan.html', students = students, books = books)
+
+@app.route('/loan/add_loan', methods=['POST'])
+def add_loan():
+    if request.method == 'POST':
+        student_id = request.form['student_id']
+        book_id = request.form['book_id']
+        day_out = request.form['day_out']
+        day_end = request.form['day_end']
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO loans (student_id, book_id, day_out, day_end) VALUES (%s, %s, %s, %s)', (student_id, book_id, day_out, day_end))
+        conn.commit()
+        flash('Prestamo agregado correctamente')
+        return redirect(url_for('Indexloans'))
 
 
 if __name__ == '__main__':

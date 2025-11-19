@@ -1,0 +1,62 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+<div class="class row">
+    <div class="class col-md-5">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  {{ messages }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                  </button>
+                </div>
+            {%endfor%}
+          {% endif %}
+        {% endwith %}
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <form action="/loan/search" method="get" class="d-flex form-control">
+                <input class="form-control" type="text" name="nombre" placeholder="Buscar por título o estudiante" value="{{ request.args.get('titulo','') }}">
+                <button class="btn" type="submit">🔍 Buscar</button>
+            </form>
+        </div>
+        <div class="col-md-4" style="text-align: right;">
+            <a href="/loan/add-loan" class="btn btn-success">Nuevo</a>
+        </div>
+    </div>
+
+    <div class="class col-md-12">
+        <table class="table table-striped table-bordered bg-white table-sm">
+            <thead>
+            <tr>
+                <td>Estudiante</td>
+                <td>Libro</td>
+                <td>Salida</td>
+                <td>Devolución</td>
+                <td>Vencimiento</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for loan in loans %}
+            <tr>
+                <td>{{ loan.name }}</td>
+                <td>{{ loan.nombre }}</td>
+                <td>{{ loan.day_out }}</td>
+                <td>{{ loan.day_in }}</td>
+                <td>{{ loan.day_end }}</td>
+
+                <td style="text-align: right;">
+                    <a href="/loan/edit/{{loan.id}}" class="btn btn-success">Editar</a>
+                    <a href="/delete/{{loan.id}}" class="btn btn-danger btn-delete">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}
